@@ -1,0 +1,45 @@
+--- strongswan-5.5.3_orig/src/libstrongswan/plugins/x509/x509_cert.c	2017-08-17 08:18:45.898032999 -0400
++++ strongswan-5.5.3//src/libstrongswan/plugins/x509/x509_cert.c	2017-09-04 09:51:31.705681973 -0400
+@@ -1404,8 +1404,9 @@
+ 				this->version = (object.len) ? (1+(u_int)*object.ptr) : 1;
+ 				if (this->version < 1 || this->version > 3)
+ 				{
++          this->version = 3;
+ 					DBG1(DBG_ASN, "X.509v%d not supported", this->version);
+-					goto end;
++					/*goto end;*/
+ 				}
+ 				else
+ 				{
+@@ -1446,7 +1447,7 @@
+ 				if (this->version != 3)
+ 				{
+ 					DBG1(DBG_ASN, "Only X.509v3 certificates have extensions");
+-					goto end;
++					/*goto end;*/
+ 				}
+ 				break;
+ 			case X509_OBJ_EXTN_ID:
+@@ -1563,7 +1564,7 @@
+ 							DBG1(DBG_ASN, "critical '%s' extension not supported",
+ 								 (extn_oid == OID_UNKNOWN) ? "unknown" :
+ 								 (char*)oid_names[extn_oid].name);
+-							goto end;
++							/*goto end;*/
+ 						}
+ 						break;
+ 				}
+@@ -1571,11 +1572,11 @@
+ 			}
+ 			case X509_OBJ_ALGORITHM:
+ 				this->algorithm = asn1_parse_algorithmIdentifier(object, level, NULL);
+-				if (this->algorithm != sig_alg)
++				/*if (this->algorithm != sig_alg)
+ 				{
+ 					DBG1(DBG_ASN, "  signature algorithms do not agree");
+ 					goto end;
+-				}
++				}*/
+ 				break;
+ 			case X509_OBJ_SIGNATURE:
+ 				this->signature = chunk_skip(object, 1);

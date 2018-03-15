@@ -1,0 +1,50 @@
+<!doctype html>
+<title>test-list</title>
+<!-- <meta http-equiv="refresh" content="3"/> -->
+<style>
+  * {
+   box-sizing: border-box; 
+  }
+  body {
+    margin: 0;
+  }
+  #main {
+    display: flex;
+    min-height: calc(100vh - 10vh);
+  }
+  #main > article {
+    flex: 1;
+  }
+  /*#main > nav, */
+  #main > aside {
+    flex: 0 0 10vw;
+    background: lightgrey;
+  }
+  /*#main > nav {
+    order: -1;
+  }*/
+  header, footer, article/*, nav,*/ aside {
+    padding: 1em;
+  }
+  header, footer {
+    background: lightblue;
+    height: 5vh;
+  }
+table {width: 95%;} th { background-color: #666; color: #fff; } tr { background-color: #fffbf0; color: #000; } tr:nth-child(odd) { background-color: #e4ebf2 ; }
+/*th.name, th.result, th.exp_val_res, th.act_val_res, th.alert_type,
+th.alert_level, th.info, th.time {
+  width: 10%;
+}*/
+  /*th.descr {
+    width="200"
+  }*/
+</style>
+<body>
+  <header><a href="/cgi-bin/test-list.py">Certificate Path Validation Tests</a><br> Version 1.0</header>
+  <div id="main">
+    <article>|content|</article>
+    <!--<nav>Nav</nav>-->
+    <aside><a href="../cgi-bin/delete_tests.py?action=ask">Delete Test Results</a></aside>
+  </div>
+  <footer>Footer</footer>
+</body>

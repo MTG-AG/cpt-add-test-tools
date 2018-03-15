@@ -1,0 +1,12 @@
+#! /usr/bin/python
+
+class config:
+    test_results_dir ="../../run/mod_browser_test_results" 
+    test_cases_dir = "../../../../third_party_libs/certification_path_tool/output"
+
+    # points to the HTML template for web site generation
+    template_file = "../../http_templates/test_list_tmpl.html"
+
+    # points to the directory from which tls test server is started
+    mod_tls_cwd = "../../../"
+    cpt_dir_rel_to_mod_tls_cwd = "../third_party_libs/certification_path_tool"
