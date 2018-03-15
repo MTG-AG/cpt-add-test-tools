@@ -1,6 +1,6 @@
-# Certification Path Validation Validation Test Tool (CPT) - Extensions
+# Certification Path Validation Test Tool (CPT) - Extensions
 
-This project provides supplementary tools for the application of the [Certification Path Validation Validation Test Tool (CPT)](https://www.bsi.bund.de/DE/Themen/Kryptografie_Kryptotechnologie/Kryptografie/CPT/cpt_node.html). The CPT is a tool for the creation of X.509 certificates and CRLs for testing purposes. It comes with a test suite that verifies the correctness of implementations of the certification path validation based on the requirements laid down in RFC 5280.
+This project provides supplementary tools for the application of the [Certification Path Validation Test Tool (CPT)](https://www.bsi.bund.de/DE/Themen/Kryptografie_Kryptotechnologie/Kryptografie/CPT/cpt_node.html). The CPT is a tool for the creation of X.509 certificates and CRLs for testing purposes. It comes with a test suite that verifies the correctness of implementations of the certification path validation based on the requirements laid down in RFC 5280.
 The CPT extensions in this project foremost serve the purpose of facilitating the testing
 the certification path validation of TLS servers and clients. Furthermore, they include test scripts which enable testing of browsers and IPsec
 implementations and support an automated testing procedure of an Apache
