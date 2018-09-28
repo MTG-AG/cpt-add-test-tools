@@ -133,15 +133,7 @@ std::vector<uint8_t> get_ee_cert_ocsp_response( std::string const& test_cases_di
   if(resp_dir_paths.size() != 1)
   {
     std::string found_dirs;
-    for(auto s : resp_dir_paths)
-    {
-      if(found_dirs.size())
-      {
-        found_dirs += ",";
-      }
-      found_dirs += s;
-    }
-    throw Botan::Invalid_Argument("invalid number of 'ocspResponses' directories: expected 1, found " + std::to_string(resp_dir_paths.size()) + ": " + found_dirs);
+    return std::vector<uint8_t>();
   }
   std::vector<std::string> ocsp_resp_paths = get_entries_of_dir(
       test_cases_dir + "/ocspResponses",
