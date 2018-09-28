@@ -380,6 +380,8 @@ protected:
         test_case_info_t tci = get_test_case_info_from_dir(test_cases_dir, m_test_case);
         m_crt_file = tci.server_cert_chain_file_path;
         m_key_file = tci.server_key_file_path;
+
+        m_enc_ocsp_response = get_ee_cert_ocsp_response(test_cases_dir + "/" + m_test_case);
         Cert_Path_Credentials_Manager creds(rng(), m_crt_file, m_key_file, nullptr);
         run_instance(&creds);
       }

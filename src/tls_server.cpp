@@ -270,7 +270,8 @@ void tls_emit_data(const uint8_t buf[], size_t length)
             */
         Testserver_Callbacks cb(
             *this,
-            pending_output
+            pending_output,
+            m_enc_ocsp_response
             );
         Botan::TLS::Server server(
             cb,

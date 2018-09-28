@@ -53,6 +53,9 @@ cert_path_test_parameters_t parse_test_case_parameters(
   std::string const& sought_test_case
 );
 
+
+std::vector<uint8_t> get_ee_cert_ocsp_response( std::string const& test_cases_dir);
+
 void write_test_result_file(
   std::string const                    & output_dir,
   std::string const                    & test_case_name,

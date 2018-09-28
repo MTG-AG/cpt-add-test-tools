@@ -5,13 +5,14 @@
  */
 
 
+#include <fstream>
+#include <iostream>
 #include "util.h"
 #include <botan/exceptn.h>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/foreach.hpp>
-#include <iostream>
 
 /* linux only ==> */
 #include <sys/types.h>
@@ -19,6 +20,7 @@
 /* <== linux only */
 
 using boost::property_tree::ptree;
+using namespace std;
 
 namespace {
   template <typename t>
@@ -45,6 +47,23 @@ namespace {
       return false;
     }
   }
+
+
+std::vector<unsigned char> read_bin_file(std::string const& filename)
+{
+  std::ifstream file(filename.c_str(), ios::in | ios::binary | ios::ate);
+  if(!file.is_open())
+  {
+    throw Botan::Invalid_Argument("could not open file '" + filename + "'");
+  }
+  std::ifstream::pos_type size;
+  size = file.tellg();
+  std::vector<unsigned char> result(size);
+  file.seekg(0, ios::beg);
+  file.read((char*) (&result[0]), size);
+  file.close();
+  return result;
+}
 }
 
 std::vector<std::string> get_entries_of_dir(
@@ -63,11 +82,12 @@ std::vector<std::string> get_entries_of_dir(
   {
     while((ent = readdir(dir)) != NULL)
     {
+      std::string s(ent->d_name);
+      //std::cout <<  "checking string = " << s << "\n";
       if(get_only_entries_that_are_dirs && (ent->d_type != DT_DIR))
       {
         continue;
       }
-      std::string s(ent->d_name);
       if(s.find(".") == 0)
       {
         continue;
@@ -99,6 +119,42 @@ std::vector<std::string> get_entries_of_dir(
   }
   return result;
 } // get_entries_of_dir
+
+
+std::vector<uint8_t> get_ee_cert_ocsp_response( std::string const& test_cases_dir)
+{
+
+  std::vector<std::string> resp_dir_paths = get_entries_of_dir(
+      test_cases_dir,
+      dir_entries_only_leafs,
+      "ocspResponses",
+      true
+      );
+  if(resp_dir_paths.size() != 1)
+  {
+    std::string found_dirs;
+    for(auto s : resp_dir_paths)
+    {
+      if(found_dirs.size())
+      {
+        found_dirs += ",";
+      }
+      found_dirs += s;
+    }
+    throw Botan::Invalid_Argument("invalid number of 'ocspResponses' directories: expected 1, found " + std::to_string(resp_dir_paths.size()) + ": " + found_dirs);
+  }
+  std::vector<std::string> ocsp_resp_paths = get_entries_of_dir(
+      test_cases_dir + "/ocspResponses",
+      dir_entries_with_path,
+      "_EE_RESP.ocsp.der",
+      false 
+      );
+  if(ocsp_resp_paths.size() != 1)
+  {
+    throw Botan::Invalid_Argument("invalid number of '*_EE_RESP.ocsp.der' files: expected 1, found " + std::to_string(ocsp_resp_paths.size()));
+  }
+  return read_bin_file(ocsp_resp_paths[0]);
+}
 
 test_case_info_t get_test_case_info_from_dir(
   std::string const& test_cases_dir,
