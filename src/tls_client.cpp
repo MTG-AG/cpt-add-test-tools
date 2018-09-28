@@ -19,6 +19,7 @@
 #  include <botan/tls_session_manager_sqlite.h>
 # endif
 
+#include <sstream>
 # include <string>
 # include <memory>
 

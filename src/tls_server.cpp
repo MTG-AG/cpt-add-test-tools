@@ -13,6 +13,7 @@
 # include <exception>
 # include <botan/tls_server.h>
 # include <botan/hex.h>
+# include <botan/tls_callbacks.h>
 
 # include <list>
 
@@ -51,6 +52,116 @@ namespace Botan_CLI {
   class TLS_Server final : public Command
   {
 public:
+    
+    class Testserver_Callbacks : public Botan::TLS::Callbacks
+    {
+      public:
+
+        Testserver_Callbacks(
+            TLS_Server& server,
+            std::list<std::string> &pending_output,
+            std::vector<uint8_t> ocsp_resp = std::vector<uint8_t>()
+            )
+          :m_server(server),
+          m_ocsp_resp(ocsp_resp),
+          m_pending_output(pending_output)
+      { }
+
+void tls_record_received(uint64_t seq_no, const uint8_t input[], size_t input_len) override
+{
+  std::string s;
+
+  for(size_t i = 0; i != input_len; ++i)
+  {
+    const char c = static_cast<char>(input[i]);
+    s += c;
+    if(c == '\n')
+    {
+      m_pending_output.push_back(s);
+      s.clear();
+    }
+  }
+}
+
+    void tls_alert( Botan::TLS::Alert alert)override
+    {
+      std::cout << "Alert: " << alert.type_string() << std::endl;
+      // m_rec_alerts.push_back(alert);
+      m_server.set_recv_alert(alert);
+    }
+  /* handshake_complete */
+    bool tls_session_established(const Botan::TLS::Session& session)
+    {
+      std::cout << "Handshake complete, " << session.version().to_string()
+                << " using " << session.ciphersuite().to_string() << std::endl;
+      //m_ciphersuite = session.ciphersuite().to_string();
+      if(!session.session_id().empty())
+        std::cout << "Session ID " << Botan::hex_encode(session.session_id()) << std::endl;
+
+      if(!session.session_ticket().empty())
+        std::cout << "Session ticket " << Botan::hex_encode(session.session_ticket()) << std::endl;
+      m_server.set_handsh_complete(session.ciphersuite().to_string());
+      //m_handshake_completed = true;
+      return true;
+    }
+
+        virtual std::vector<uint8_t> tls_srv_provoide_cert_status_response() const override
+        {
+          return m_ocsp_resp;
+        }
+
+#if 0
+void tls_record_received(uint64_t seq_no, const uint8_t data[], size_t size) override
+{
+// TODO
+}
+#endif
+
+void tls_emit_data(const uint8_t buf[], size_t length)
+{
+/* only supports TCP, not UDP */
+
+/*static void stream_socket_write(
+  int           sockfd,
+  const uint8_t buf[],
+  size_t        length
+  )*/
+  int sock_fd = m_server.get_server_sock_fd();
+    while(length)
+    {
+      ssize_t sent = ::send(sock_fd, buf, length, MSG_NOSIGNAL);
+
+      if(sent == -1)
+      {
+        if(errno == EINTR)
+        {
+          sent = 0;
+        }
+        else
+        {
+          uint8_t rec_buf[4096];
+          ssize_t got = ::read(sock_fd, rec_buf, sizeof(rec_buf));
+          if(!stc_server->m_handshake_completed)
+          {
+            stc_server->m_rec_alert = try_parse_alert(buf, got);
+          }
+
+          throw CLI_Error("Socket write failed");
+        }
+      }
+
+      buf    += sent;
+      length -= sent;
+    }
+}
+
+      private:
+        TLS_Server& m_server;
+        std::vector<uint8_t> m_ocsp_resp;
+        std::list<std::string> & m_pending_output;
+
+    };
+
     TLS_Server() : Command(
         "tls_server --test_main_dir= --test_case= --result_dir= --port=443 --timeout= --type=tcp --policy= --stay"){ }
 
@@ -95,7 +206,7 @@ public:
 
       Botan::TLS::Session_Manager_In_Memory session_manager(rng()); // TODO sqlite3
 
-
+#if 0
       auto protocol_chooser = [](const std::vector<std::string>& protocols) -> std::string {
           for(size_t i = 0; i != protocols.size(); ++i)
           {
@@ -103,6 +214,7 @@ public:
           }
           return "";
         };
+#endif
 
       output() << "Listening for new connections on " << transport << " port " << port << std::endl;
 
@@ -135,12 +247,13 @@ public:
 
           using namespace std::placeholders;
 
-          auto socket_write = is_tcp ? std::bind(&stream_socket_write, fd, _1, _2) :
-            std::bind(&dgram_socket_write, fd, _1, _2);
+          /*auto socket_write = is_tcp ? std::bind(&stream_socket_write, fd, _1, _2) :
+            std::bind(&dgram_socket_write, fd, _1, _2);*/
 
-          std::string s;
+          //std::string s;
           std::list<std::string> pending_output;
 
+          /*
           auto proc_fn = [&](const uint8_t input[], size_t input_len)
             {
               for(size_t i = 0; i != input_len; ++i)
@@ -154,8 +267,19 @@ public:
                 }
               }
             };
-
-          Botan::TLS::Server server(socket_write,
+            */
+        Testserver_Callbacks cb(
+            *this,
+            pending_output
+            );
+        Botan::TLS::Server server(
+            cb,
+            session_manager,
+            *creds,
+            *policy,
+            rng()
+            );
+     /*     Botan::TLS::Server server(socket_write,
             proc_fn,
             std::bind(&TLS_Server::alert_received, this, _1, _2, _3),
             std::bind(&TLS_Server::handshake_complete, this, _1),
@@ -164,7 +288,7 @@ public:
             *policy,
             rng(),
             protocol_chooser,
-            !is_tcp);
+            !is_tcp);*/
 
           while(!server.is_closed())
           {
@@ -242,8 +366,13 @@ public:
       } while(stay_up);
     } // run_instance
 
+int get_server_sock_fd() const
+{
+  return m_sock_fd;
+}
+
 private:
-    int make_server_socket(
+int make_server_socket(
       bool     is_tcp,
       uint16_t port
     )
@@ -281,6 +410,8 @@ private:
       return fd;
     } // make_server_socket
 
+    // TODO: REMOVE
+#if 0
     bool handshake_complete(const Botan::TLS::Session& session)
     {
       std::cout << "Handshake complete, " << session.version().to_string()
@@ -294,6 +425,7 @@ private:
       m_handshake_completed = true;
       return true;
     }
+#endif
 
     static void dgram_socket_write(
       int           sockfd,
@@ -308,7 +440,7 @@ private:
       else if(sent != static_cast<ssize_t>(length))
         std::cout << "Packet of length " << length << " truncated to " << sent << std::endl;
     }
-
+#if 0
     static void stream_socket_write(
       int           sockfd,
       const uint8_t buf[],
@@ -342,7 +474,10 @@ private:
         length -= sent;
       }
     }
+#endif
 
+    // TODO: REMOVE
+  #if 0
     void alert_received(
       Botan::TLS::Alert alert,
       const uint8_t[],
@@ -353,6 +488,7 @@ private:
       // m_rec_alerts.push_back(alert);
       m_rec_alert = std::unique_ptr<Botan::TLS::Alert>(new Botan::TLS::Alert(alert));
     }
+#endif
 
     bool m_use_timeout = true;
     int m_sock_fd      = 0;

@@ -602,6 +602,21 @@ protected:
       return *m_rng.get();
     }
 
+    void set_recv_alert(Botan::TLS::Alert const& alert)
+    {
+      m_rec_alert = std::unique_ptr<Botan::TLS::Alert>(new Botan::TLS::Alert(alert));
+    }
+
+    void set_handsh_complete(std::string const& ciphersuite)
+    {
+      if(m_ciphersuite.size())
+      {
+        m_ciphersuite += ",";
+      }
+      m_ciphersuite += ciphersuite;
+      m_handshake_completed = true;
+    }
+
 private:
     // set in constructor
     std::string m_spec;
@@ -634,6 +649,7 @@ protected:
     std::string m_crt_file;
     std::string m_key_file;
     std::string m_received_data;
+    std::vector<uint8_t> m_enc_ocsp_response;
 
 public:
 
@@ -681,6 +697,7 @@ public:
       }
     };
   };
+#define BOTAN_FORCE_SEMICOLON ;
 
   #define BOTAN_REGISTER_COMMAND(name, CLI_Class)                         \
     namespace {Botan_CLI::Command::Registration                         \
