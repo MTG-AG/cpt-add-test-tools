@@ -149,7 +149,7 @@ void tls_emit_data(const uint8_t buf[], size_t length)
     };
 
     TLS_Server() : Command(
-        "tls_server --test_main_dir= --test_case= --result_dir= --port=443 --timeout= --type=tcp --policy= --stay"){ }
+        "tls_server --test_main_dir= --test_case= --result_dir= --port=443 --timeout= --type=tcp --policy= --stay --no_ocsp_stapl"){ }
 
     void run_instance(Botan::Credentials_Manager* creds) override
     {
@@ -157,7 +157,7 @@ void tls_emit_data(const uint8_t buf[], size_t length)
       std::string timeout_str        = get_arg_or("timeout", "2");
       const unsigned timeout_seconds = string_to_u64bit(timeout_str);
       auto timeout = std::chrono::seconds(timeout_seconds);
-
+      bool do_use_ocsp_stapling = flag_set("no_ocsp_stapl") ? false : true;
       const int port = get_arg_sz("port");
       const std::string transport = get_arg("type");
 
@@ -227,7 +227,10 @@ void tls_emit_data(const uint8_t buf[], size_t length)
 
 
           std::list<std::string> pending_output;
-
+        if(!do_use_ocsp_stapling)
+        {
+          m_enc_ocsp_response.resize(0);
+        }
         Testserver_Callbacks cb(
             *this,
             pending_output,

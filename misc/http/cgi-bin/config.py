@@ -10,3 +10,8 @@ class config:
     # points to the directory from which tls test server is started
     mod_tls_cwd = "../../../"
     cpt_dir_rel_to_mod_tls_cwd = "../third_party_libs/certification_path_tool"
+
+    # Boolean value indicating whether the TLS testserver send the stapled
+    # response for the EE (i.e.  server )certificate contained in the
+    # ocspResonse directory.
+    do_use_ocsp_stapling=True
