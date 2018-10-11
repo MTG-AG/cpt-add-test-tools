@@ -40,6 +40,7 @@ namespace {
   {
     std::istringstream is(str);
     uint64_t result;
+
     is >> result;
     return result;
   }
@@ -52,104 +53,117 @@ namespace Botan_CLI {
   class TLS_Server final : public Command
   {
 public:
-    
+
     class Testserver_Callbacks : public Botan::TLS::Callbacks
     {
-      public:
+public:
 
-        Testserver_Callbacks(
-            TLS_Server& server,
-            std::list<std::string> &pending_output,
-            std::vector<uint8_t> ocsp_resp = std::vector<uint8_t>()
-            )
-          :m_server(server),
-          m_ocsp_resp(ocsp_resp),
-          m_pending_output(pending_output)
+      Testserver_Callbacks(
+        TLS_Server             & server,
+        std::list<std::string> &pending_output,
+        std::vector<uint8_t>   ocsp_resp = std::vector<uint8_t>()
+      )
+        : m_server(server),
+        m_ocsp_resp(ocsp_resp),
+        m_pending_output(pending_output)
       { }
 
-void tls_record_received(uint64_t seq_no, const uint8_t input[], size_t input_len) override
-{
-  std::string s;
-
-  for(size_t i = 0; i != input_len; ++i)
-  {
-    const char c = static_cast<char>(input[i]);
-    s += c;
-    if(c == '\n')
-    {
-      m_pending_output.push_back(s);
-      s.clear();
-    }
-  }
-}
-
-    void tls_alert( Botan::TLS::Alert alert)override
-    {
-      std::cout << "Alert: " << alert.type_string() << std::endl;
-      m_server.set_recv_alert(alert);
-    }
-  /* handshake_complete */
-    bool tls_session_established(const Botan::TLS::Session& session)
-    {
-      std::cout << "Handshake complete, " << session.version().to_string()
-                << " using " << session.ciphersuite().to_string() << std::endl;
-      if(!session.session_id().empty())
-        std::cout << "Session ID " << Botan::hex_encode(session.session_id()) << std::endl;
-
-      if(!session.session_ticket().empty())
-        std::cout << "Session ticket " << Botan::hex_encode(session.session_ticket()) << std::endl;
-      m_server.set_handsh_complete(session.ciphersuite().to_string());
-      return true;
-    }
-
-        virtual std::vector<uint8_t> tls_srv_provoide_cert_status_response() const override
-        {
-          return m_ocsp_resp;
-        }
-
-
-void tls_emit_data(const uint8_t buf[], size_t length)
-{
-/* only supports TCP, not UDP */
-
-  int sock_fd = m_server.get_server_sock_fd();
-    while(length)
-    {
-      ssize_t sent = ::send(sock_fd, buf, length, MSG_NOSIGNAL);
-
-      if(sent == -1)
+      void tls_record_received(
+        uint64_t      seq_no,
+        const uint8_t input[],
+        size_t        input_len
+      ) override
       {
-        if(errno == EINTR)
-        {
-          sent = 0;
-        }
-        else
-        {
-          uint8_t rec_buf[4096];
-          ssize_t got = ::read(sock_fd, rec_buf, sizeof(rec_buf));
-          if(!stc_server->m_handshake_completed)
-          {
-            stc_server->m_rec_alert = try_parse_alert(buf, got);
-          }
+        std::string s;
 
-          throw CLI_Error("Socket write failed");
+        for(size_t i = 0; i != input_len; ++i)
+        {
+          const char c = static_cast<char>(input[i]);
+          s += c;
+          if(c == '\n')
+          {
+            m_pending_output.push_back(s);
+            s.clear();
+          }
         }
       }
 
-      buf    += sent;
-      length -= sent;
-    }
-}
+      void tls_alert(Botan::TLS::Alert alert) override
+      {
+        std::cout << "Alert: " << alert.type_string() << std::endl;
 
-      private:
-        TLS_Server& m_server;
-        std::vector<uint8_t> m_ocsp_resp;
-        std::list<std::string> & m_pending_output;
+        m_server.set_recv_alert(alert);
+      }
 
+      /* handshake_complete */
+      bool tls_session_established(const Botan::TLS::Session& session)
+      {
+        std::cout << "Handshake complete, " << session.version().to_string()
+                  << " using " << session.ciphersuite().to_string() << std::endl;
+
+        if(!session.session_id().empty())
+          std::cout << "Session ID " << Botan::hex_encode(session.session_id()) << std::endl;
+
+        if(!session.session_ticket().empty())
+          std::cout << "Session ticket " << Botan::hex_encode(session.session_ticket()) << std::endl;
+        m_server.set_handsh_complete(session.ciphersuite().to_string());
+        return true;
+      }
+
+      virtual std::vector<uint8_t> tls_srv_provoide_cert_status_response(
+        std::vector<Botan::X509_Certificate> const&,
+        Botan::TLS::Certificate_Status_Request const&
+      ) const override
+      {
+        return m_ocsp_resp;
+      }
+
+      void tls_emit_data(
+        const uint8_t buf[],
+        size_t        length
+      )
+      {
+/* only supports TCP, not UDP */
+
+        int sock_fd = m_server.get_server_sock_fd();
+
+        while(length)
+        {
+          ssize_t sent = ::send(sock_fd, buf, length, MSG_NOSIGNAL);
+
+          if(sent == -1)
+          {
+            if(errno == EINTR)
+            {
+              sent = 0;
+            }
+            else
+            {
+              uint8_t rec_buf[4096];
+              ssize_t got = ::read(sock_fd, rec_buf, sizeof(rec_buf));
+              if(!stc_server->m_handshake_completed)
+              {
+                stc_server->m_rec_alert = try_parse_alert(buf, got);
+              }
+
+              throw CLI_Error("Socket write failed");
+            }
+          }
+
+          buf    += sent;
+          length -= sent;
+        }
+      }
+
+private:
+      TLS_Server& m_server;
+      std::vector<uint8_t> m_ocsp_resp;
+      std::list<std::string> & m_pending_output;
     };
 
     TLS_Server() : Command(
-        "tls_server --test_main_dir= --test_case= --result_dir= --port=443 --timeout= --type=tcp --policy= --stay --no_ocsp_stapl"){ }
+        "tls_server --test_main_dir= --test_case= --result_dir= --port=443 --timeout= --type=tcp --policy= --stay --no_ocsp_stapl")
+    { }
 
     void run_instance(Botan::Credentials_Manager* creds) override
     {
@@ -206,7 +220,7 @@ void tls_emit_data(const uint8_t buf[], size_t length)
         {
           std::packaged_task<int()> accept_task([&](){
             return accept(server_fd, nullptr, nullptr);
-          });
+            });
 
           std::future<int> fut = accept_task.get_future();
           std::thread(std::move(accept_task)).detach();
@@ -225,24 +239,23 @@ void tls_emit_data(const uint8_t buf[], size_t length)
           using namespace std::placeholders;
 
 
-
           std::list<std::string> pending_output;
-        if(!do_use_ocsp_stapling)
-        {
-          m_enc_ocsp_response.resize(0);
-        }
-        Testserver_Callbacks cb(
+          if(!do_use_ocsp_stapling)
+          {
+            m_enc_ocsp_response.resize(0);
+          }
+          Testserver_Callbacks cb(
             *this,
             pending_output,
             m_enc_ocsp_response
-            );
-        Botan::TLS::Server server(
+          );
+          Botan::TLS::Server server(
             cb,
             session_manager,
             *creds,
             *policy,
             rng()
-            );
+          );
 
           while(!server.is_closed())
           {
@@ -257,7 +270,7 @@ void tls_emit_data(const uint8_t buf[], size_t length)
 
             std::packaged_task<ssize_t()> read_task([&](){
               return ::read(fd, buf, sizeof(buf));
-            });
+              });
 
             std::future<ssize_t> rfut = read_task.get_future();
             std::thread(std::move(read_task)).detach();
@@ -320,13 +333,13 @@ void tls_emit_data(const uint8_t buf[], size_t length)
       } while(stay_up);
     } // run_instance
 
-int get_server_sock_fd() const
-{
-  return m_sock_fd;
-}
+    int get_server_sock_fd() const
+    {
+      return m_sock_fd;
+    }
 
 private:
-int make_server_socket(
+    int make_server_socket(
       bool     is_tcp,
       uint16_t port
     )
@@ -364,7 +377,6 @@ int make_server_socket(
       return fd;
     } // make_server_socket
 
-
     static void dgram_socket_write(
       int           sockfd,
       const uint8_t buf[],
@@ -378,7 +390,6 @@ int make_server_socket(
       else if(sent != static_cast<ssize_t>(length))
         std::cout << "Packet of length " << length << " truncated to " << sent << std::endl;
     }
-
 
     bool m_use_timeout = true;
     int m_sock_fd      = 0;
