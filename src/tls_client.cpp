@@ -210,7 +210,7 @@ public:
             ssize_t got = ::read(m_sockfd, buf, sizeof(buf));
             if(!m_handshake_completed)
             {
-              m_rec_alert = try_parse_alert(buf, got);
+              m_rec_alert = try_parse_alert(buf, got, m_ciphersuite);
             }
 
             throw Botan::Invalid_State(

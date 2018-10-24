@@ -347,7 +347,8 @@ void conclude_test_result_and_write_it(
 
 std::unique_ptr<Botan::TLS::Alert> try_parse_alert(
   uint8_t const* buf,
-  uint32_t       got
+  uint32_t       got,
+  std::string & message
 )
 {
   if(got >= 7)
@@ -366,6 +367,11 @@ std::unique_ptr<Botan::TLS::Alert> try_parse_alert(
       }
       catch(...)
       { }
+    }
+    /* encrypted alert ? */
+    else if(buf[0] == 21 && buf[1] <= 3 && buf[2] <= 3)
+    {
+      message += " -- received an encrypted alert, indicated test result may invalid -- ";
     }
   }
   return std::unique_ptr<Botan::TLS::Alert>();

@@ -77,7 +77,8 @@ void conclude_test_result_and_write_it(
 
 std::unique_ptr<Botan::TLS::Alert> try_parse_alert(
   uint8_t const* buf,
-  uint32_t       got
+  uint32_t       got,
+  std::string & message
 );
 
 #endif /* h-guard */

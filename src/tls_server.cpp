@@ -143,7 +143,7 @@ public:
               ssize_t got = ::read(sock_fd, rec_buf, sizeof(rec_buf));
               if(!stc_server->m_handshake_completed)
               {
-                stc_server->m_rec_alert = try_parse_alert(buf, got);
+                stc_server->m_rec_alert = try_parse_alert(buf, got, stc_server->m_ciphersuite);
               }
 
               throw CLI_Error("Socket write failed");
@@ -289,6 +289,7 @@ private:
 
             if(got == -1)
             {
+
               std::cout << "Error in socket read - " << strerror(errno) << std::endl;
               break;
             }
@@ -321,6 +322,14 @@ private:
         }
         catch(std::exception const& e)
         {
+          uint8_t buf[4 * 1024] = {0};
+            /* manually receive the final alert. this is the only feasible way to achieve
+             * this with Botan. */
+            ssize_t got = ::read(m_sock_fd, buf, sizeof(buf));
+            if(!m_handshake_completed)
+            {
+              m_rec_alert = try_parse_alert(buf, got, m_ciphersuite); 
+            }
           if(stay_up)
           {
             std::cout << "caught exeption (staying up): " << e.what() << std::endl;
