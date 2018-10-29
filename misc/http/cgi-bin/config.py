@@ -2,6 +2,10 @@
 
 class config:
     test_results_dir ="../../run/mod_browser_test_results" 
+    dyn_srv_port_file = "../../run/dyn_server_port"
+    dyn_srv_port_min = 4450 
+    dyn_srv_port_max = 4550
+
     test_cases_dir = "../../../../third_party_libs/certification_path_tool/output"
 
     # points to the HTML template for web site generation
