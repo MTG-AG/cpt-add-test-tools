@@ -21,19 +21,11 @@ for i in $1/output/CERT_PATH_OCSP_*; do # Whitespace-safe and recursive
   ocsp_uri=`openssl x509 -in $ee_file -noout -ocsp_uri`
   echo $test_name: 
   echo $test_name: >> $outfile
-  #echo " " $ocsp_uri
-  #ocsp_eval=`openssl ocsp -issuer $subca_file -cert $ee_file -url $ocsp_uri -CAfile $subca_file`
   test_case_file=$1/testcases/mod_ocsp/${test_name}.xml
   tmp=`sed -re 's/<Text>([A-Z]+)<\/Text>/\1/;t;d' $test_case_file` 
-  exp_res=`echo $tmp | xargs`
-  #echo " '$exp_res'"
-  #status=`echo $ocsp_eval | sed -re "s|${ee_file}: ([a-z]+)|!p"`
-  #status=`echo $ocsp_eval | sed -re 's|[a-zA-Z0-9/_-.]+: ([a-z]+)|\1|;t;d'`
-  #status=`echo $ocsp_eval | sed -re '|[a-zA-Z0-9/_-.]+: ([a-z]+)|!d;s||\1|p'`
-  #status=`echo $ocsp_eval | sed -re '|[a-zA-Z0-9/_-.]+: ([a-z]+)|!d;s||\1|p'`
-
+  # remove whitespaces:
+  exp_res="$(echo -e "${tmp}" | tr -d '[:space:]')"
   status=`openssl ocsp -issuer $subca_file -cert $ee_file -url $ocsp_uri -CAfile $subca_file | sed -re 's|[a-zA-Z0-9/_-.]+: ([a-z]+)|\1|;t;d'`
-
   resp_ver_ok_str=`openssl ocsp -issuer $subca_file -cert $ee_file -url $ocsp_uri -CAfile $subca_file 2>&1 | sed -re 's|(Response verify OK)|\1|;t;d'`
   echo "  status = "$status >> $outfile
   echo "  response verify = "$resp_ver_ok_str >> $outfile
@@ -49,12 +41,12 @@ for i in $1/output/CERT_PATH_OCSP_*; do # Whitespace-safe and recursive
     fi
   else
     echo "  actual result = VALID" >> $outfile
+    echo "expected result = '"$exp_res"'"
+    echo "outfile         = '"$outfile"'"
     if [ "$exp_res" = "INVALID" ]; then
       echo "  result: FAIL" >> $outfile
     else
       echo "  result: PASS" >> $outfile
     fi
   fi
-  #status=`echo $ocsp_eval | sed -re "s//home/fstrenzke/Dokumente/Projekte/2016_BSI_Cert_Check/MS3_OCSP_etc/certification_path_tool_1.1b05//output/CERT_PATH_OCSP_20/CERT_PATH_OCSP_20_EE.TC.pem.crt: ([a-z]+)/\1/g"`
-  #echo $ee_file
 done
