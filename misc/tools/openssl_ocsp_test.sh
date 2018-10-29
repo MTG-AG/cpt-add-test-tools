@@ -35,7 +35,7 @@ for i in $1/output/CERT_PATH_OCSP_*; do # Whitespace-safe and recursive
   if  [ "$resp_ver_ok" -eq 0 ] || [ "$status" != "good" ]; then
     echo "  actual result = INVALID" >> $outfile
     if [ "$exp_res" = "VALID" ]; then
-      echo "  result: FAIL" >> $outfile
+      echo "  result: ERROR" >> $outfile
     else
       echo "  result: PASS" >> $outfile
     fi
@@ -44,7 +44,7 @@ for i in $1/output/CERT_PATH_OCSP_*; do # Whitespace-safe and recursive
     echo "expected result = '"$exp_res"'"
     echo "outfile         = '"$outfile"'"
     if [ "$exp_res" = "INVALID" ]; then
-      echo "  result: FAIL" >> $outfile
+      echo "  result: ERROR" >> $outfile
     else
       echo "  result: PASS" >> $outfile
     fi
