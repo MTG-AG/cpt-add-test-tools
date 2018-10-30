@@ -106,7 +106,11 @@ public:
 
         if(!session.session_ticket().empty())
           std::cout << "Session ticket " << Botan::hex_encode(session.session_ticket()) << std::endl;
-        m_server.set_handsh_complete(session.ciphersuite().to_string());
+        m_server.set_ciphersuite(session.ciphersuite().to_string());
+        if(!m_server.do_expect_app_data())
+        {
+          m_server.set_handsh_complete();
+        }
         return true;
       }
 
@@ -162,7 +166,7 @@ private:
     };
 
     TLS_Server() : Command(
-        "tls_server --test_main_dir= --test_case= --result_dir= --port=443 --timeout= --type=tcp --policy= --stay --no_ocsp_stapl")
+        "tls_server --test_main_dir= --test_case= --result_dir= --port=443 --timeout= --type=tcp --policy= --stay --no_ocsp_stapl --expect_app_data")
     { }
 
     void run_instance(Botan::Credentials_Manager* creds) override
@@ -174,7 +178,10 @@ private:
       bool do_use_ocsp_stapling = flag_set("no_ocsp_stapl") ? false : true;
       const int port = get_arg_sz("port");
       const std::string transport = get_arg("type");
-
+      if(flag_set("expect_app_data"))
+      {
+        m_expect_app_data = true;
+      }
       if(timeout_seconds == 0)
       {
         m_use_timeout = false;
@@ -307,9 +314,10 @@ private:
               std::string output = pending_output.front();
               pending_output.pop_front();
               server.send(output);
-
-              if(output == "quit\n")
-                server.close();
+              if(m_expect_app_data)
+              {
+                set_handsh_complete();
+              }
             }
           }
 

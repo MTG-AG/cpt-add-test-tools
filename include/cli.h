@@ -609,14 +609,33 @@ protected:
       m_rec_alert = std::unique_ptr<Botan::TLS::Alert>(new Botan::TLS::Alert(alert));
     }
 
-    void set_handsh_complete(std::string const& ciphersuite)
+    void set_ciphersuite(std::string const& ciphersuite)
     {
       if(m_ciphersuite.size())
       {
         m_ciphersuite += ",";
       }
       m_ciphersuite += ciphersuite;
+    }
+
+    void set_handsh_complete(std::string const& ciphersuite)
+    {
+      set_ciphersuite(ciphersuite);
       m_handshake_completed = true;
+    }
+    void set_handsh_complete()
+    {
+      m_handshake_completed = true;
+    }
+    
+    void expect_app_data() 
+    {
+      m_expect_app_data = true;
+    }
+
+    bool do_expect_app_data()
+    {
+      return m_expect_app_data;
     }
 
 private:
@@ -652,6 +671,7 @@ protected:
     std::string m_key_file;
     std::string m_received_data;
     std::vector<uint8_t> m_enc_ocsp_response;
+    bool m_expect_app_data = false;
 
 public:
 

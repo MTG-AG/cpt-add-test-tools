@@ -66,6 +66,6 @@ if(config.do_use_ocsp_stapling == False):
 test_case = arguments.getvalue("test_name")
 
 print "</p></body></html>"
-subprocess.Popen("./build/modul_tls tls_server --test_main_dir=" +
+subprocess.Popen("./build/modul_tls tls_server --expect_app_data --test_main_dir=" +
         config.cpt_dir_rel_to_mod_tls_cwd + " --test_case=" + test_case + " --port=" + str(port) + " --result_dir=misc/run/mod_browser_test_results --stay" + ocsp_str, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=mod_tls_cwd);
 

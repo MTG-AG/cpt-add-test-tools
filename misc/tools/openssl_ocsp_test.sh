@@ -27,6 +27,9 @@ for i in $1/output/CERT_PATH_OCSP_*; do # Whitespace-safe and recursive
   exp_res="$(echo -e "${tmp}" | tr -d '[:space:]')"
   status=`openssl ocsp -issuer $subca_file -cert $ee_file -url $ocsp_uri -CAfile $subca_file | sed -re 's|[a-zA-Z0-9/_-.]+: ([a-z]+)|\1|;t;d'`
   resp_ver_ok_str=`openssl ocsp -issuer $subca_file -cert $ee_file -url $ocsp_uri -CAfile $subca_file 2>&1 | sed -re 's|(Response verify OK)|\1|;t;d'`
+  if [ "$#" -eq 2 ]; then
+    `openssl ocsp -issuer $subca_file -cert $ee_file -url $ocsp_uri -CAfile $subca_file -text &> $outfile`
+  fi
   echo "  status = "$status >> $outfile
   echo "  response verify = "$resp_ver_ok_str >> $outfile
   resp_ver_ok=${#resp_ver_ok_str}
@@ -42,7 +45,6 @@ for i in $1/output/CERT_PATH_OCSP_*; do # Whitespace-safe and recursive
   else
     echo "  actual result = VALID" >> $outfile
     echo "expected result = '"$exp_res"'"
-    echo "outfile         = '"$outfile"'"
     if [ "$exp_res" = "INVALID" ]; then
       echo "  result: ERROR" >> $outfile
     else
@@ -50,3 +52,4 @@ for i in $1/output/CERT_PATH_OCSP_*; do # Whitespace-safe and recursive
     fi
   fi
 done
+echo "outfile         = '"$outfile"'"
