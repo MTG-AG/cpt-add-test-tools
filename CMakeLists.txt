@@ -34,7 +34,7 @@ ADD_DEFINITIONS(
   -Wpointer-arith  -Wcast-align -Wwrite-strings
   )
 
-SET(BOTAN_DIR /opt/Botan-2.2.0 CACHE STRING "Botan main
+SET(BOTAN_DIR /opt/botan CACHE STRING "Botan main
 directory")
 
 IF(NOT CMAKE_BUILD_TYPE)
