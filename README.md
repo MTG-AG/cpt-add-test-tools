@@ -27,7 +27,7 @@ Security (BSI).
 
 The documentation for the installation and usage of the CPT extensions can be
 [downloaded from the project
-website](https://www.bsi.bund.de/SharedDocs/Downloads/EN/BSI/CPT/CPT-Test-Tool-Extensions-User-Documentation.pdf?__blob=publicationFile&v=5).
+website](https://www.bsi.bund.de/SharedDocs/Downloads/EN/BSI/CPT/CPT-Tool-Extensions-User-Documentation_v1_1.pdf?__blob=publicationFile&v=2).
 
 
 # Quick start for the TLS test tool
@@ -41,7 +41,7 @@ proceed as follows:
   location `/opt/boost_1_64`. The subfolders `/opt/boost_1_64/lib` and `/opt/boost_1_64/include` are expected. Newer versions of the boost libraries may also work but have not been tested.
 * install the Botan library in version 2.2.0. Newer versions of Botan may also
   work but have not been tested.
-* for more details on the installation of the Boost libraries and Botan refer to Section 3.2 in the [documentation](https://www.bsi.bund.de/SharedDocs/Downloads/EN/BSI/CPT/CPT-Test-Tool-Extensions-User-Documentation.pdf?__blob=publicationFile&v=5).
+* for more details on the installation of the Boost libraries and Botan refer to Section 3.2 in the [documentation](https://www.bsi.bund.de/SharedDocs/Downloads/EN/BSI/CPT/CPT-Tool-Extensions-User-Documentation_v1_1.pdf?__blob=publicationFile&v=2).
 * execute `cmake .`
 * execute `make`
 * start the TLS test client: `./build/modul_tls tls_client <hostname> --test_main_dir=<cpt directory> 
@@ -50,4 +50,4 @@ proceed as follows:
 --test_case=<test case name> --port=<port> --result_dir=<output directory> [
 --timeout=<timeout seconds> --stay ]`
 * for more details on running the TLS test tools, refer to Section 3.3 in the
-  [documentation](https://www.bsi.bund.de/SharedDocs/Downloads/EN/BSI/CPT/CPT-Test-Tool-Extensions-User-Documentation.pdf?__blob=publicationFile&v=5). 
+  [documentation](https://www.bsi.bund.de/SharedDocs/Downloads/EN/BSI/CPT/CPT-Tool-Extensions-User-Documentation_v1_1.pdf?__blob=publicationFile&v=2). 
