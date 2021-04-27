@@ -114,10 +114,10 @@ public:
         return true;
       }
 
-      virtual std::vector<uint8_t> tls_srv_provoide_cert_status_response(
+      virtual std::vector<uint8_t> tls_provide_cert_status(
         std::vector<Botan::X509_Certificate> const&,
         Botan::TLS::Certificate_Status_Request const&
-      ) const override
+      ) override
       {
         return m_ocsp_resp;
       }
